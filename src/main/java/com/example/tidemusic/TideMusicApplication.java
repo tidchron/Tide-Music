@@ -6,8 +6,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.model_objects.specification.Artist;
-import se.michaelthelin.spotify.requests.data.artists.GetArtistRequest;
 
 import java.io.IOException;
 
@@ -25,9 +23,5 @@ public class TideMusicApplication {
         System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
 
         SpringApplication.run(TideMusicApplication.class, args);
-
-        //SpotifyTokenManager 클래스에서 accessToken 받아오기
-        String accessToken = SpotifyTokenManager.getAccessToken();
-        System.out.println("accessToken = " + accessToken);
     }
 }
