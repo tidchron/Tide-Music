@@ -19,7 +19,7 @@ public class SpotifyAuthService {
 
     private final SpotifyApi spotifyApi;
 
-    // 1. 인증 URI 생성 (동기) Spotify 인증 페이지 표시
+    // 1. 인증 URI 생성 (동기) 스포티파이 인증 페이지 표시
     public URI getAuthorizationUri() throws IOException, SpotifyWebApiException, ParseException {
         AuthorizationCodeUriRequest request = spotifyApi.authorizationCodeUri()
                 .state("test-custom-state") // CSRF 공격 방지(콜백 시 값 검증)
@@ -52,5 +52,11 @@ public class SpotifyAuthService {
         AuthorizationCodeCredentials credentials = request.execute();
         spotifyApi.setAccessToken(credentials.getAccessToken());
         return credentials;
+    }
+
+    // 4. 인증 상태 확인
+    public boolean isAuthenticated() {
+        String token = spotifyApi.getAccessToken();
+        return token != null && !token.isEmpty();
     }
 }

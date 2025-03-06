@@ -1,10 +1,14 @@
 package com.example.tidemusic.controller;
 
 import com.example.tidemusic.service.SpotifyAuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
+import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
 
 import java.net.URI;
 
@@ -29,14 +33,35 @@ public class SpotifyAuthController {
         }
     }
 
-    // 2. Spotify가 인증 후 리다이렉트하는 콜백 엔드포인트
+    // 2. 스포티파이가 인증 후 리다이렉트하는 콜백 엔드포인트
     @GetMapping("/spotify/callback")
-    public ResponseEntity<String> callback(@RequestParam("code") String code, @RequestParam("state") String state) {
+    public RedirectView callback(@RequestParam("code") String code,
+                                 @RequestParam("state") String state,
+                                 HttpServletResponse response) {
         try {
-            spotifyAuthService.exchangeCode(code);
-            return ResponseEntity.ok("Spotify 인증 성공!");
+            // SpotifyAuthService에서 액세스 및 리프레시 토큰 획득
+            AuthorizationCodeCredentials credentials = spotifyAuthService.exchangeCode(code);
+
+            // 프론트엔드 URL로 리다이렉트
+            RedirectView redirectView = new RedirectView();
+            redirectView.setUrl("http://localhost:3000");
+            return redirectView;
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("인증 중 오류 발생: " + e.getMessage());
+            // 오류 발생 시 프론트엔드로 리다이렉트하고 오류 메시지 전달
+            RedirectView redirectView = new RedirectView();
+            redirectView.setUrl("http://localhost:3000?error=" + e.getMessage());
+            return redirectView;
+        }
+    }
+
+    // 3. 인증 상태 체크 엔드포인트
+    @GetMapping("/spotify/status")
+    public ResponseEntity<?> getAuthStatus() {
+        try {
+            boolean authStatus = spotifyAuthService.isAuthenticated();
+            return ResponseEntity.ok(authStatus);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("인증 상태 확인 실패: " + e.getMessage());
         }
     }
 }
