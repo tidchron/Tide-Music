@@ -1,8 +1,8 @@
 package com.example.tidemusic.controller;
 
 import com.example.tidemusic.service.SpotifyAuthService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -62,6 +62,17 @@ public class SpotifyAuthController {
             return ResponseEntity.ok(authStatus);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("인증 상태 확인 실패: " + e.getMessage());
+        }
+    }
+
+    // 액세스 토큰 반환 엔드포인트
+    @GetMapping("/spotify/token")
+    public ResponseEntity<String> getAccessTokenEndpoint() {
+        try {
+            String token = spotifyAuthService.getAccessToken();
+            return ResponseEntity.ok(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("토큰 반환 실패: " + e.getMessage());
         }
     }
 }

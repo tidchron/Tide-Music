@@ -59,4 +59,9 @@ public class SpotifyAuthService {
         String token = spotifyApi.getAccessToken();
         return token != null && !token.isEmpty();
     }
+
+    // 액세스 토큰 반환
+    public String getAccessToken() {
+        return spotifyApi.getAccessToken();
+    }
 }

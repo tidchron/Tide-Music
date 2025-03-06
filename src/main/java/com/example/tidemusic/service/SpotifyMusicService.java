@@ -48,4 +48,9 @@ public class SpotifyMusicService {
         PagingCursorbased<PlayHistory> playHistoryPaging = request.execute();
         return Arrays.asList(playHistoryPaging.getItems());
     }
+
+    // 백엔드 컨트롤러에서 SpotifyApi 객체에 접근 가능
+    public SpotifyApi getSpotifyApi() {
+        return spotifyApi;
+    }
 }
