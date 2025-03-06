@@ -12,6 +12,10 @@ function App() {
     const [recentlyPlayed, setRecentlyPlayed] = useState([]);
     const [deviceId, setDeviceId] = useState('');
     const [player, setPlayer] = useState(null);
+    const [followedArtists, setFollowedArtists] = useState([]);
+    const [playlists, setPlaylists] = useState([]);
+    const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
+    const [playlistTracks, setPlaylistTracks] = useState([]);
 
     // 인증 상태 확인 및 데이터 가져오기
     useEffect(() => {
@@ -33,6 +37,14 @@ function App() {
                     // 최근 재생한 트랙 가져오기
                     const recentlyPlayedResponse = axios.get('http://localhost:8080/spotify/recently-played');
                     setRecentlyPlayed((await recentlyPlayedResponse).data);
+
+                    // 팔로우한 아티스트 가져오기
+                    const followedArtistsResponse = await axios.get('http://localhost:8080/spotify/followed-artists');
+                    setFollowedArtists(followedArtistsResponse.data);
+
+                    // 내 플레이리스트 가져오기
+                    const playlistsResponse = await axios.get('http://localhost:8080/spotify/playlists');
+                    setPlaylists(playlistsResponse.data);
                 } else {
                     // 인증되지 않았다면 인증 URI를 가져와 로그인하도록 유도
                     const authResponse = axios.get('http://localhost:8080/spotify/auth');
@@ -62,12 +74,20 @@ function App() {
                     });
 
                     // 이벤트 리스너 설정
-                    spotifyPlayer.addListener('initialization_error', ({ message }) => { console.error(message); });
-                    spotifyPlayer.addListener('authentication_error', ({ message }) => { console.error(message); });
-                    spotifyPlayer.addListener('account_error', ({ message }) => { console.error(message); });
-                    spotifyPlayer.addListener('playback_error', ({ message }) => { console.error(message); });
+                    spotifyPlayer.addListener('initialization_error', ({message}) => {
+                        console.error(message);
+                    });
+                    spotifyPlayer.addListener('authentication_error', ({message}) => {
+                        console.error(message);
+                    });
+                    spotifyPlayer.addListener('account_error', ({message}) => {
+                        console.error(message);
+                    });
+                    spotifyPlayer.addListener('playback_error', ({message}) => {
+                        console.error(message);
+                    });
 
-                    spotifyPlayer.addListener('ready', ({ device_id }) => {
+                    spotifyPlayer.addListener('ready', ({device_id}) => {
                         console.log('플레이어 준비 완료, device_id:', device_id);
                         setDeviceId(device_id);
                     });
@@ -100,7 +120,7 @@ function App() {
     // SDK 플레이어를 통한 재생
     const handlePlay = (trackUri) => {
         if (deviceId) {
-            axios.post(`http://localhost:8080/spotify/play?deviceId=${encodeURIComponent(deviceId)}&trackUri=${encodeURIComponent(trackUri)}`, {}, { withCredentials: true })
+            axios.post(`http://localhost:8080/spotify/play?deviceId=${encodeURIComponent(deviceId)}&trackUri=${encodeURIComponent(trackUri)}`, {}, {withCredentials: true})
                 .then(response => {
                     console.log(response.data);
                 })
@@ -121,6 +141,35 @@ function App() {
         }
     };
 
+    // 선택된 플레이리스트 트랙 가져오는 함수
+    const fetchPlaylistTracks = async (playlistId) => {
+        try {
+            const response = await axios.get(`http://localhost:8080/spotify/playlists/${playlistId}/tracks`);
+            setPlaylistTracks(response.data);
+            setSelectedPlaylistId(playlistId);
+        } catch (error) {
+            console.error('플레이리스트 트랙 가져오기 실패:', error);
+        }
+    };
+
+    // 플레이리스트 전체 재생
+    const handlePlayPlaylist = (playlistUri) => {
+        if (deviceId) {
+            axios.post(
+                `http://localhost:8080/spotify/play-playlist?deviceId=${encodeURIComponent(deviceId)}&contextUri=${encodeURIComponent(playlistUri)}`,
+                {},
+                { withCredentials: true }
+            )
+                .then(response => {
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    console.error('플레이리스트 전체 재생 실패:', error);
+                });
+        } else {
+            console.error("deviceId가 설정되지 않았습니다.");
+        }
+    };
 
     return (
         <div className="App">
@@ -164,6 +213,42 @@ function App() {
                                 </li>
                             ))}
                         </ul>
+                        <h2>팔로우한 아티스트</h2>
+                        <ul>
+                            {followedArtists.map(artist => (
+                                <li key={artist.id}>
+                                    {artist.images && artist.images.length > 0 && (
+                                        <img src={artist.images[0].url} alt={artist.name}
+                                             style={{width: '50px', height: '50px'}}/>
+                                    )}
+                                    {artist.name}</li>
+                            ))}
+                        </ul>
+                        <h2>내 플레이리스트</h2>
+                        <ul>
+                            {playlists.map(playlist => (
+                                <li key={playlist.id}
+                                    onClick={() => fetchPlaylistTracks(playlist.id)}>{playlist.name}
+                                    <button onClick={() => handlePlayPlaylist(playlist.uri)}>전체 재생</button>
+                                </li>
+                            ))}
+                        </ul>
+                        {selectedPlaylistId && (
+                            <div>
+                                <h3>선택된 플레이리스트 트랙</h3>
+                                <ul>
+                                    {playlistTracks.map(track => (
+                                        <li key={track.track.id}>
+                                            <img src={track.track.album.images[0].url} alt={track.track.name}
+                                                 style={{width: '50px', height: '50px'}}/>
+                                            {track.track.name} - {track.track.artists && track.track.artists.length > 0 && track.track.artists[0].name}
+                                            ({track.track.album.name})
+                                            <button onClick={() => handlePlay(track.track.uri)}>Play</button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                         <div>
                             <button onClick={handlePause}>일시 정지</button>
                         </div>

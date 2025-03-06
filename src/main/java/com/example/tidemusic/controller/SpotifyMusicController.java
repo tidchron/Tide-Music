@@ -3,13 +3,13 @@ package com.example.tidemusic.controller;
 import com.example.tidemusic.service.SpotifyMusicService;
 import com.google.gson.JsonArray;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import se.michaelthelin.spotify.model_objects.specification.PlayHistory;
-import se.michaelthelin.spotify.model_objects.specification.SavedTrack;
-import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.*;
 import se.michaelthelin.spotify.requests.data.player.StartResumeUsersPlaybackRequest;
 import se.michaelthelin.spotify.requests.data.player.TransferUsersPlaybackRequest;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.util.List;
@@ -104,6 +104,52 @@ public class SpotifyMusicController {
             return ResponseEntity.ok("재생 정지됨");
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             return ResponseEntity.status(500).body("재생 정지 실패: " + e.getMessage());
+        }
+    }
+
+    // 팔로우한 아티스트 조회 엔드포인트
+    @GetMapping("/followed-artists")
+    public ResponseEntity<List<Artist>> getFollowedArtists() {
+        try {
+            List<Artist> artists=spotifyMusicService.getFollowedArtists();
+            return ResponseEntity.ok(artists);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
+    // 내 플레이리스트 조회 엔드포인트
+    @GetMapping("/playlists")
+    public ResponseEntity<List<PlaylistSimplified>> getUserPlaylists() {
+        try {
+            List<PlaylistSimplified> playlist = spotifyMusicService.getUserPlaylists();
+            return ResponseEntity.ok(playlist);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
+    // 플레이리스트 트랙 조회 엔드포인트
+    @GetMapping("/playlists/{playlistId}/tracks")
+    public ResponseEntity<List<PlaylistTrack>> getPlaylistTracks(@PathVariable String playlistId) {
+        try {
+            List<PlaylistTrack> tracks = spotifyMusicService.getPlaylistTracks(playlistId);
+            return ResponseEntity.ok(tracks);
+        } catch (Exception e) {
+            System.err.println("플레이리스트 트랙 조회 실패: " + e.getMessage());
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
+    // 플레이리스트 전체 재생
+    @PostMapping("/play-playlist")
+    public ResponseEntity<String> playPlaylist(@RequestParam("deviceId") String deviceId,
+                                               @RequestParam("contextUri") String contextUri) {
+        try {
+            String message = spotifyMusicService.playPlaylist(contextUri, deviceId);
+            return ResponseEntity.ok(message);
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            return new ResponseEntity<>("재생 실패: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -23,12 +23,13 @@ public class SpotifyAuthService {
     public URI getAuthorizationUri() throws IOException, SpotifyWebApiException, ParseException {
         AuthorizationCodeUriRequest request = spotifyApi.authorizationCodeUri()
                 .state("test-custom-state") // CSRF 공격 방지(콜백 시 값 검증)
-                .scope("user-read-playback-state,user-modify-playback-state,user-read-currently-playing," +
-                        "app-remote-control,streaming," +
-                        "playlist-read-private,playlist-read-collaborative,playlist-modify-private,playlist-modify-public," +
-                        "user-read-playback-position,user-top-read,user-read-recently-played," +
-                        "user-library-modify,user-library-read," +
-                        "user-read-email,user-read-private")
+                .scope("user-read-playback-state, user-modify-playback-state,user-read-currently-playing," +
+                        "app-remote-control, streaming," +
+                        "playlist-read-private, playlist-read-collaborative, playlist-modify-private, playlist-modify-public," +
+                        "user-read-playback-position, user-top-read, user-read-recently-played," +
+                        "user-library-modify, user-library-read," +
+                        "user-read-email, user-read-private," +
+                        "user-follow-read, user-library-modify")
                 .show_dialog(true)
                 .build();
         return request.execute();

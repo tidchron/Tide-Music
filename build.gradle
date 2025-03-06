@@ -48,10 +48,12 @@ dependencies {
     testImplementation 'org.testcontainers:oracle-free'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    //Spotify Web API Java
+    // Spotify Web API Java
     implementation 'se.michaelthelin.spotify:spotify-web-api-java:9.1.1'
-    //Dotenv Java
+    // Dotenv Java
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+    // Gson
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 dependencyManagement {
